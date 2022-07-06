@@ -1,3 +1,4 @@
+from time import sleep
 from account_operations import (
         create_account,
         update_account,
@@ -7,9 +8,15 @@ from account_operations import (
         deposit_into_account,
         transfer_between_accounts)
 
+from shared import busylist
+
 # This is simply a parser that will get the raw request string and redirect you
 # to the proper operation, then get its return data and return it
 def process_request(request, con, crsr):
+    global busylist
+    # The global busylist holds, for every thread, all of the busy bank accounts
+    # by their respective RG numbers
+
     # We will break down the string to handle the processes 
     split_request = request.split()
 
@@ -19,7 +26,23 @@ def process_request(request, con, crsr):
         command = split_request[0]
         # The rg number of the accountholder
         rg_no = split_request[1]
-        
+
+        print("DEBUG", busylist)
+
+        # Test if we are busy
+        # We create a flag to check if the current RG is busy
+        is_busy = True
+
+        # While the RG is indeed busy, we keep looping and checking again if we
+        # are finally free to run
+        while is_busy:
+            is_busy = rg_no in busylist
+            if is_busy:
+                print("Got blocked")
+                sleep(1)
+
+        # If we reach this point, it means the RG was free
+
         # These will be returned by some operation
         status = None
         msg = None
@@ -30,34 +53,70 @@ def process_request(request, con, crsr):
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             name = split_request[2]
+
+            # The RG goes to the busylist now
+            busylist.append(rg_no)
+            sleep(10)
+            print("Locking", rg_no)
+
             status, msg = create_account(con, crsr, rg_no, name)
         elif command.lower() == 'u': 
             # 3 arguments minimum
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             name = split_request[2]
+
+            # You can only get here once your RG is not busy
+            busylist.append(rg_no)
+            sleep(10)
+            print("Locking", rg_no)
+
             status, msg = update_account(con, crsr, rg_no, name)
         elif command.lower() == 'r': 
             # 2 arguments minimum
             if len(split_request) < 2:
                 return str(f"ERROR: Invalid input: missing arguments")
+
+            # You can only get here once your RG is not busy
+            busylist.append(rg_no)
+            sleep(10)
+            print("Locking", rg_no)
+
             status, msg = delete_account(con, crsr, rg_no)
         elif command.lower() == 'b': 
             # 2 arguments minimum
             if len(split_request) < 2:
                 return str(f"ERROR: Invalid input: missing arguments")
+
+            # You can only get here once your RG is not busy
+            busylist.append(rg_no)
+            sleep(10)
+            print("Locking", rg_no)
+
             status, msg = consult_account_balance(con, crsr, rg_no)
         elif command.lower() == 'w': 
             # 3 arguments minimum
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             value = split_request[2]
+
+            # You can only get here once your RG is not busy
+            busylist.append(rg_no)
+            sleep(10)
+            print("Locking", rg_no)
+
             status, msg = withdraw_from_account(con, crsr, rg_no, value)
         elif command.lower() == 'd': 
             # 3 arguments minimum
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             value = split_request[2]
+
+            # You can only get here once your RG is not busy
+            busylist.append(rg_no)
+            sleep(10)
+            print("Locking", rg_no)
+
             status, msg = deposit_into_account(con, crsr, rg_no, value)
         elif command.lower() == 't': 
             # 4 arguments minimum
@@ -65,10 +124,20 @@ def process_request(request, con, crsr):
                 return str(f"ERROR: Invalid input: missing arguments")
             receiver_rg_no = split_request[2]
             value = split_request[3]
+
+            # You can only get here once your RG is not busy
+            busylist.append(rg_no)
+            sleep(10)
+            print("Locking", rg_no)
+
             status, msg = transfer_between_accounts(con, crsr, rg_no, receiver_rg_no, value)
         else:
             # Bad command name given
             return str(f"ERROR: Invalid input")
+
+        # Set the RG as free
+        print("DEBUG 2", busylist)
+        busylist.remove(rg_no)
 
         if status:
             return str(msg)
