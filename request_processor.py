@@ -8,7 +8,6 @@ from account_operations import (
         transfer_between_accounts)
 from datetime import datetime
 from shared import busylist, stamp_time
-from time import sleep
 
 
 # This is simply a parser that will get the raw request string and redirect you
@@ -31,8 +30,6 @@ def process_request(request, con, crsr):
         # The rg number of the accountholder
         rg_no = split_request[1]
 
-        print("DEBUG", busylist)
-
         # Test if we are busy
         # We create a flag to check if the current RG is busy
         is_busy = True
@@ -42,8 +39,8 @@ def process_request(request, con, crsr):
         while is_busy:
             is_busy = rg_no in busylist
             if is_busy:
+                sleep(1) # Waits to avoid overconsultation
                 print("Got blocked")
-                sleep(1)
 
         # If we reach this point, it means the RG was free
 
@@ -64,7 +61,6 @@ def process_request(request, con, crsr):
 
             # The RG goes to the busylist now
             busylist.append(rg_no)
-            sleep(10)
             print("Locking", rg_no)
 
             status, msg = create_account(con, crsr, rg_no, name)
@@ -76,7 +72,6 @@ def process_request(request, con, crsr):
 
             # You can only get here once your RG is not busy
             busylist.append(rg_no)
-            sleep(10)
             print("Locking", rg_no)
 
             status, msg = update_account(con, crsr, rg_no, name)
@@ -87,7 +82,6 @@ def process_request(request, con, crsr):
 
             # You can only get here once your RG is not busy
             busylist.append(rg_no)
-            sleep(10)
             print("Locking", rg_no)
 
             status, msg = delete_account(con, crsr, rg_no)
@@ -98,7 +92,6 @@ def process_request(request, con, crsr):
 
             # You can only get here once your RG is not busy
             busylist.append(rg_no)
-            sleep(10)
             print("Locking", rg_no)
 
             status, msg = consult_account_balance(con, crsr, rg_no)
@@ -110,7 +103,6 @@ def process_request(request, con, crsr):
 
             # You can only get here once your RG is not busy
             busylist.append(rg_no)
-            sleep(10)
             print("Locking", rg_no)
 
             status, msg = withdraw_from_account(con, crsr, rg_no, value)
@@ -122,7 +114,6 @@ def process_request(request, con, crsr):
 
             # You can only get here once your RG is not busy
             busylist.append(rg_no)
-            sleep(10)
             print("Locking", rg_no)
 
             status, msg = deposit_into_account(con, crsr, rg_no, value)
@@ -135,7 +126,6 @@ def process_request(request, con, crsr):
 
             # You can only get here once your RG is not busy
             busylist.append(rg_no)
-            sleep(10)
             print("Locking", rg_no)
 
             status, msg = transfer_between_accounts(con, crsr, rg_no, receiver_rg_no, value)
@@ -144,7 +134,6 @@ def process_request(request, con, crsr):
             return str(f"ERROR: Invalid input")
 
         # Set the RG as free
-        print("DEBUG 2", busylist)
         busylist.remove(rg_no)
 
         # Adds lamport time to the returned message
