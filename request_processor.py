@@ -1,4 +1,3 @@
-from time import sleep
 from account_operations import (
         create_account,
         update_account,
@@ -7,15 +6,20 @@ from account_operations import (
         withdraw_from_account,
         deposit_into_account,
         transfer_between_accounts)
+from datetime import datetime
+from shared import busylist, stamp_time
+from time import sleep
 
-from shared import busylist
 
 # This is simply a parser that will get the raw request string and redirect you
 # to the proper operation, then get its return data and return it
 def process_request(request, con, crsr):
-    global busylist
     # The global busylist holds, for every thread, all of the busy bank accounts
     # by their respective RG numbers
+    global busylist
+
+    # This is the Lamport time global variable
+    global stamp_time
 
     # We will break down the string to handle the processes 
     split_request = request.split()
@@ -42,6 +46,10 @@ def process_request(request, con, crsr):
                 sleep(1)
 
         # If we reach this point, it means the RG was free
+
+        # Updates lamport timing
+        stamp_time = stamp_time + 1
+        cur_date = datetime.now()
 
         # These will be returned by some operation
         status = None
@@ -138,6 +146,10 @@ def process_request(request, con, crsr):
         # Set the RG as free
         print("DEBUG 2", busylist)
         busylist.remove(rg_no)
+
+        # Adds lamport time to the returned message
+        msg = msg + '\n (LAMPORT_TIME={}, LOCAL_TIME={})'.format(stamp_time, cur_date)
+        print('BANK_ACCOUNT={}: LAMPORT_TIME={}, LOCAL_TIME={}'.format(rg_no, stamp_time, cur_date))
 
         if status:
             return str(msg)

@@ -1,14 +1,14 @@
-import socket
 import os
-from constants import FORMAT
-from client_connection import receive_client_request
+import socket
+import threading
+
 from  create_database import start_db
+from _thread import *
+from client_connection import receive_client_request
 from constants import CLIENT_ADDRESS, SIZE, FORMAT
+from constants import FORMAT
 from request_processor import process_request
 from shared import busylist
-
-from _thread import *
-import threading
 
 def threaded(conn, request, db_con, db_crsr):
     global busylist
@@ -21,8 +21,6 @@ def threaded(conn, request, db_con, db_crsr):
 
     # Closing the connection from the client. 
     conn.close()
-
-
 
 def main():
     # Connecting to the database
@@ -57,3 +55,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
