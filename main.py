@@ -6,6 +6,23 @@ from  create_database import start_db
 from constants import CLIENT_ADDRESS, SIZE, FORMAT
 from request_processor import process_request
 
+from _thread import *
+import threading
+
+def threaded(conn, request, db_con, db_crsr):
+  while True:
+    
+    # For every request received from the client side, we process it here
+    msg = process_request(request, db_con, db_crsr)
+
+    # Here we send the client a return message
+    conn.send(msg.encode(FORMAT))
+
+    # Closing the connection from the client. 
+    conn.close()
+
+
+
 def main():
     # Connecting to the database
     # The db connection and mysql cursor for db operations is initialized only once here
@@ -30,14 +47,8 @@ def main():
             server_client)
         print("Received request is", request)
 
-        # For every request received from the client side, we process it here
-        msg = process_request(request, db_con, db_crsr)
+        start_new_thread(threaded, (conn, request, db_con, db_crsr))
 
-        # Here we send the client a return message
-        conn.send(msg.encode(FORMAT))
-
-        # Closing the connection from the client. 
-        conn.close()
         print(f"[DISCONNECTED] {addr} disconnected.")
         print("[LISTENING] Server is listening again.")
 

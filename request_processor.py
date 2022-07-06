@@ -25,41 +25,41 @@ def process_request(request, con, crsr):
         msg = None
 
         # Demuxing by bank operation command, and passing its arguments
-        if command == 'c': 
+        if command.lower() == 'c': 
             # 3 arguments minimum
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             name = split_request[2]
             status, msg = create_account(con, crsr, rg_no, name)
-        elif command == 'u': 
+        elif command.lower() == 'u': 
             # 3 arguments minimum
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             name = split_request[2]
             status, msg = update_account(con, crsr, rg_no, name)
-        elif command == 'r': 
+        elif command.lower() == 'r': 
             # 2 arguments minimum
             if len(split_request) < 2:
                 return str(f"ERROR: Invalid input: missing arguments")
             status, msg = delete_account(con, crsr, rg_no)
-        elif command == 'b': 
+        elif command.lower() == 'b': 
             # 2 arguments minimum
             if len(split_request) < 2:
                 return str(f"ERROR: Invalid input: missing arguments")
             status, msg = consult_account_balance(con, crsr, rg_no)
-        elif command == 'w': 
+        elif command.lower() == 'w': 
             # 3 arguments minimum
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             value = split_request[2]
             status, msg = withdraw_from_account(con, crsr, rg_no, value)
-        elif command == 'd': 
+        elif command.lower() == 'd': 
             # 3 arguments minimum
             if len(split_request) < 3:
                 return str(f"ERROR: Invalid input: missing arguments")
             value = split_request[2]
             status, msg = deposit_into_account(con, crsr, rg_no, value)
-        elif command == 't': 
+        elif command.lower() == 't': 
             # 4 arguments minimum
             if len(split_request) < 4:
                 return str(f"ERROR: Invalid input: missing arguments")
