@@ -1,10 +1,26 @@
-import socket
 import os
-from constants import FORMAT
-from client_connection import receive_client_request
+import socket
+import threading
+
 from  create_database import start_db
+from _thread import *
+from client_connection import receive_client_request
 from constants import CLIENT_ADDRESS, SIZE, FORMAT
+from constants import FORMAT
 from request_processor import process_request
+from shared import busylist
+
+def threaded(conn, request, db_con, db_crsr):
+    global busylist
+
+    # For every request received from the client side, we process it here
+    msg = process_request(request, db_con, db_crsr)
+
+    # Here we send the client a return message
+    conn.send(msg.encode(FORMAT))
+
+    # Closing the connection from the client. 
+    conn.close()
 
 def main():
     # Connecting to the database
@@ -21,6 +37,7 @@ def main():
     # Bind the CLIENT_IP and CLIENT_PORT to the server_client. 
     server_client.bind(CLIENT_ADDRESS)
 
+
     # Server is listening, i.e., server_client is now waiting for the client to connected. 
     server_client.listen()
     print("[LISTENING] Server is listening.")
@@ -30,17 +47,12 @@ def main():
             server_client)
         print("Received request is", request)
 
-        # For every request received from the client side, we process it here
-        msg = process_request(request, db_con, db_crsr)
+        start_new_thread(threaded, (conn, request, db_con, db_crsr))
 
-        # Here we send the client a return message
-        conn.send(msg.encode(FORMAT))
-
-        # Closing the connection from the client. 
-        conn.close()
         print(f"[DISCONNECTED] {addr} disconnected.")
         print("[LISTENING] Server is listening again.")
 
 
 if __name__ == "__main__":
     main()
+
