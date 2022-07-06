@@ -10,8 +10,6 @@ from _thread import *
 import threading
 
 def threaded(conn, request, db_con, db_crsr):
-  while True:
-    
     # For every request received from the client side, we process it here
     msg = process_request(request, db_con, db_crsr)
 

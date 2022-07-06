@@ -20,7 +20,7 @@ def start_db():
     answer = input()
 
     # The connection and mysql cursor used for db operations
-    con = sql.connect("data.db")
+    con = sql.connect("data.db", check_same_thread=False)
     crsr = con.cursor()
 
     if answer == 'y':
